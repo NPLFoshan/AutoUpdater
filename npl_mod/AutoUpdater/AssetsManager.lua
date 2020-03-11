@@ -163,6 +163,20 @@ function AssetsManager:check(version,callback)
     end
 	LOG.std(nil, "info", "AssetsManager", "local version is: %s",self._curVersion);
     self:downloadVersion(function(bSucceed)
+        -- we will not update for mac if software version heighter then remote version
+        if System.os.GetPlatform() == 'mac' then
+            if self._curVersion == "0" then
+                self._curVersion = System.options.ClientVersion
+                self:compareVersions()
+
+                if not self._needUpdate then
+                    self._latestVersion = self._curVersion
+                else
+                    self._curVersion = "0"
+                end
+            end
+        end
+
 		if(bSucceed) then
 			LOG.std(nil, "info", "AssetsManager", "remote version is: %s",self._latestVersion);
 			self._comparedVersion = self:compareVersions();
@@ -186,8 +200,8 @@ function AssetsManager:loadLocalVersion()
             txt = string.gsub(txt,"[%s\r\n]","");
             local __,v = string.match(txt,"(.+)=(.+)");
             self._curVersion = v;
-        end
-	else
+        end 
+    else
 		LOG.std(nil, "warn", "AssetsManager", "file %s not FOUND", self.localVersionTxt);	
 	end
 end
